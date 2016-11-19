@@ -25,17 +25,21 @@
     document.title = newPage.querySelector('title').innerText;
   }
 
-  function ghettoLink(e){
+  function turbolink(path){
+    ajax(path, function(responseText){
+      var newPage = document.createElement('html');
+      newPage.innerHTML = responseText;
+      loadBody(newPage);
+      updateTitle(newPage);
+      pageLoad();
+    });
+  }
+
+  function anchorClick(e){
     var el = e.target;
-    if(window.location.host === el.host){
-      ajax(el.href, function(responseText){
-        var newPage = document.createElement('html');
-        newPage.innerHTML = responseText;
-        loadBody(newPage);
-        updateTitle(newPage);
-        history.pushState({}, '', el.href);
-        pageLoad();
-      });
+    if(window.location.host === el.host && !e.ctrlKey && !e.metaKey){
+      turbolink(el.href);
+      history.pushState({}, '', el.href);
       e.preventDefault();
     }
   }
@@ -43,8 +47,12 @@
   function pageLoad(){
     var anchors = document.getElementsByTagName('a');
     for(var i = 0; i < anchors.length; i++) {
-      anchors[i].addEventListener('click', ghettoLink);
+      anchors[i].addEventListener('click', anchorClick);
     }
+  }
+
+  window.onpopstate = function(e){
+    turbolink(window.location.href);
   }
 
   window.Blunckr = {
